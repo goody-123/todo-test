@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>To-do</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 2rem auto; padding: 0 1rem; }
+    form { display: flex; gap: .5rem; }
+    form input { flex: 1; }
+    input, button { font: inherit; padding: .4rem .6rem; }
+    ul { list-style: none; padding: 0; }
+    li { display: flex; align-items: center; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid #ddd; }
+    li span { flex: 1; }
+    li input[type=text] { flex: 1; }
+    .done { text-decoration: line-through; color: #595959; }
+    #error { color: #b00020; min-height: 1.5em; }
+  </style>
+</head>
+<body>
+  <h1>To-do</h1>
+  <form id="add-form">
+    <input id="add-title" type="text" aria-label="New to-do title" placeholder="What needs doing?">
+    <button type="submit">Add</button>
+  </form>
+  <p id="error" role="alert"></p>
+  <p id="empty" hidden>Nothing to do yet.</p>
+  <ul id="list"></ul>
+  <script type="module" src="src/ui.js"></script>
+</body>
+</html>
