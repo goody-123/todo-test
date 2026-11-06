@@ -1,5 +1,9 @@
 # todo-test
 
-This is a throwaway test project for the dunsinai-os agent team.
+Throwaway test project for the dunsinai-os agent team.
 
-Planning comes before implementation. No application code has been added.
+Simple single-device to-do app. Data is stored in browser localStorage behind `src/todoStorage.js`.
+
+Open `index.html` through a static server (ES modules do not load from `file://`), e.g. `npx serve .`.
+
+Run tests: `npm test`
