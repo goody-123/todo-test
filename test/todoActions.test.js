@@ -65,3 +65,18 @@ test("due date can be set on add, changed and cleared via edit", () => {
   assert.equal("dueDate" in a.list()[0], false);
   assert.equal(a.edit(t.id, "d", "nope").ok, false);
 });
+
+test("clearCompleted removes completed, keeps incomplete, persists", () => {
+  const s = fakeStorage();
+  const a = createTodoActions(createLocalTodoStorage(s));
+  a.add("done1");
+  a.add("open");
+  a.add("done2");
+  const [d1, , d2] = a.list();
+  a.toggle(d1.id, true);
+  a.toggle(d2.id, true);
+  assert.deepEqual(a.clearCompleted(), { ok: true });
+  assert.deepEqual(a.list().map((t) => t.title), ["open"]);
+  const b = createTodoActions(createLocalTodoStorage(s));
+  assert.deepEqual(b.list().map((t) => t.title), ["open"]);
+});

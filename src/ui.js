@@ -9,6 +9,7 @@ const dueInput = document.getElementById("add-due");
 const listEl = document.getElementById("list");
 const errorEl = document.getElementById("error");
 const emptyEl = document.getElementById("empty");
+const clearBtn = document.getElementById("clear-completed");
 
 function showError(msg) {
   errorEl.textContent = msg || "";
@@ -118,6 +119,7 @@ function render() {
   const todos = actions.list();
   listEl.replaceChildren(...todos.map(makeItem));
   emptyEl.hidden = todos.length > 0;
+  clearBtn.disabled = !todos.some((t) => t.completed);
 }
 
 form.addEventListener("submit", (e) => {
@@ -127,5 +129,7 @@ form.addEventListener("submit", (e) => {
     dueInput.value = "";
   }
 });
+
+clearBtn.addEventListener("click", () => handle(actions.clearCompleted()));
 
 render();
