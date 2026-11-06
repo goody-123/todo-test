@@ -13,8 +13,10 @@ export function createTodoActions(storage) {
 
   return {
     list: () => storage.list(),
-    add: (title) => run(() => storage.add(title)),
+    add: (title, dueDate) => run(() => storage.add(title, dueDate)),
     editTitle: (id, title) => run(() => storage.update(id, { title })),
+    // dueDate "" or null clears it.
+    edit: (id, title, dueDate) => run(() => storage.update(id, { title, dueDate })),
     toggle: (id, completed) => run(() => storage.update(id, { completed })),
     remove: (id) => run(() => storage.remove(id)),
   };

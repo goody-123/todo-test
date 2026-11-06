@@ -1,10 +1,11 @@
-import { createLocalTodoStorage } from "./todoStorage.js";
+import { createLocalTodoStorage, isOverdue } from "./todoStorage.js";
 import { createTodoActions } from "./todoActions.js";
 
 const actions = createTodoActions(createLocalTodoStorage());
 
 const form = document.getElementById("add-form");
 const input = document.getElementById("add-title");
+const dueInput = document.getElementById("add-due");
 const listEl = document.getElementById("list");
 const errorEl = document.getElementById("error");
 const emptyEl = document.getElementById("empty");
@@ -56,7 +57,24 @@ function makeItem(todo) {
   del.setAttribute("aria-label", `Delete: ${todo.title}`);
   del.addEventListener("click", () => handle(actions.remove(todo.id)));
 
-  li.append(check, title, edit, del);
+  li.append(check, title);
+  if (todo.dueDate) {
+    const due = document.createElement("span");
+    due.className = "due";
+    const time = document.createElement("time");
+    time.dateTime = todo.dueDate;
+    time.textContent = `Due ${todo.dueDate}`;
+    due.append(time);
+    if (isOverdue(todo)) {
+      li.classList.add("overdue");
+      const label = document.createElement("strong");
+      label.className = "overdue-label";
+      label.textContent = "\u26A0 Overdue";
+      due.append(" ", label);
+    }
+    li.append(due);
+  }
+  li.append(edit, del);
   return li;
 }
 
@@ -66,6 +84,11 @@ function startEdit(li, todo) {
   editInput.value = todo.title;
   editInput.setAttribute("aria-label", "Edit title");
 
+  const dueEdit = document.createElement("input");
+  dueEdit.type = "date";
+  dueEdit.value = todo.dueDate || "";
+  dueEdit.setAttribute("aria-label", "Edit due date (clear to remove)");
+
   const save = document.createElement("button");
   save.type = "button";
   save.textContent = "Save";
@@ -73,19 +96,21 @@ function startEdit(li, todo) {
   cancel.type = "button";
   cancel.textContent = "Cancel";
 
-  const commit = () => handle(actions.editTitle(todo.id, editInput.value), { id: todo.id, role: "edit" });
+  const commit = () => handle(actions.edit(todo.id, editInput.value, dueEdit.value), { id: todo.id, role: "edit" });
   save.addEventListener("click", commit);
   cancel.addEventListener("click", () => {
     showError("");
     render();
     listEl.querySelector(`[data-id="${todo.id}"][data-role="edit"]`)?.focus();
   });
-  editInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") commit();
-    if (e.key === "Escape") cancel.click();
-  });
+  for (const el of [editInput, dueEdit]) {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") commit();
+      if (e.key === "Escape") cancel.click();
+    });
+  }
 
-  li.replaceChildren(editInput, save, cancel);
+  li.replaceChildren(editInput, dueEdit, save, cancel);
   editInput.focus();
 }
 
@@ -97,7 +122,10 @@ function render() {
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  if (handle(actions.add(input.value))) input.value = "";
+  if (handle(actions.add(input.value, dueInput.value))) {
+    input.value = "";
+    dueInput.value = "";
+  }
 });
 
 render();
