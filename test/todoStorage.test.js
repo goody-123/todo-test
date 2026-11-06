@@ -74,3 +74,41 @@ test("corrupt stored data yields empty list", () => {
   backing.setItem("todos", "{not json");
   assert.deepEqual(createLocalTodoStorage(backing).list(), []);
 });
+
+import { isOverdue } from "../src/todoStorage.js";
+
+test("dueDate is optional, validated, changeable and clearable", () => {
+  const s = createLocalTodoStorage(fakeStorage());
+  const a = s.add("a");
+  assert.equal("dueDate" in a, false);
+  const b = s.add("b", "2026-11-10");
+  assert.equal(b.dueDate, "2026-11-10");
+  assert.throws(() => s.add("c", "2026-02-30"));
+  assert.throws(() => s.add("c", "tomorrow"));
+  assert.equal(s.update(a.id, { dueDate: "2026-12-01" }).dueDate, "2026-12-01");
+  assert.equal("dueDate" in s.update(a.id, { dueDate: null }), false);
+  assert.equal(s.list().find((t) => t.id === a.id).dueDate, undefined);
+  assert.throws(() => s.update(a.id, { dueDate: "bad" }));
+});
+
+test("clearCompleted removes only completed", () => {
+  const s = createLocalTodoStorage(fakeStorage());
+  const a = s.add("a");
+  const b = s.add("b");
+  s.add("c");
+  s.update(a.id, { completed: true });
+  s.update(b.id, { completed: true });
+  assert.equal(s.clearCompleted(), 2);
+  assert.deepEqual(s.list().map((t) => t.title), ["c"]);
+  assert.equal(s.clearCompleted(), 0);
+});
+
+test("isOverdue: incomplete and dueDate before today only", () => {
+  const today = new Date(2026, 10, 6, 23, 59);
+  assert.equal(isOverdue({ completed: false, dueDate: "2026-11-05" }, today), true);
+  assert.equal(isOverdue({ completed: false, dueDate: "2026-11-06" }, today), false);
+  assert.equal(isOverdue({ completed: false, dueDate: "2026-11-07" }, today), false);
+  assert.equal(isOverdue({ completed: true, dueDate: "2026-11-05" }, today), false);
+  assert.equal(isOverdue({ completed: false }, today), false);
+  assert.equal(isOverdue({ completed: false, dueDate: "2026-11-05" }, "2026-11-06"), true);
+});
