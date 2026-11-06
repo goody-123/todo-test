@@ -53,3 +53,15 @@ test("only uses the storage interface", () => {
   a.list(); a.add("x"); a.editTitle("1", "y"); a.toggle("1", true); a.remove("1");
   assert.deepEqual(calls, ["list", "add", "update", "update", "remove"]);
 });
+
+test("due date can be set on add, changed and cleared via edit", () => {
+  const a = createTodoActions(createLocalTodoStorage(fakeStorage()));
+  assert.deepEqual(a.add("d", "2026-11-10"), { ok: true });
+  const [t] = a.list();
+  assert.equal(t.dueDate, "2026-11-10");
+  assert.deepEqual(a.edit(t.id, "d", "2026-12-01"), { ok: true });
+  assert.equal(a.list()[0].dueDate, "2026-12-01");
+  assert.deepEqual(a.edit(t.id, "d", ""), { ok: true });
+  assert.equal("dueDate" in a.list()[0], false);
+  assert.equal(a.edit(t.id, "d", "nope").ok, false);
+});
