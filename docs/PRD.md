@@ -1,40 +1,40 @@
-# To-do app v1
-
 ## Goal
-A simple to-do app that works on one device with no login, storing data locally.
+A simple to-do app for one person on one device. Add to-dos, complete them, set due dates, see overdue ones highlighted, and clear completed ones in one action.
 
 ## Users
-A single person using the app on one device. No accounts, no sharing.
+A single user on a single device. No accounts.
 
 ## Scope v1
-- Create, view, edit, complete and delete to-do items.
-- Data persisted on the device (local storage). Survives app restart.
-- Single-device, no login, no sync.
-- A storage layer with a clear interface so Supabase could be added later without UI changes.
+- Add, edit, complete, uncomplete and delete a to-do.
+- Optional due date on each to-do.
+- Overdue to-dos (due date before today, not completed) are visually highlighted.
+- A "clear completed" button that removes all completed to-dos.
+- Data persists across reloads on the same device.
 
 ## Out of scope
-- Login and user accounts.
-- Supabase or any cloud storage.
-- Multi-device sync.
-- Sharing, reminders, categories, due dates.
+- Login, accounts, multi-device sync.
+- Supabase or any hosted backend.
+- Reminders, notifications, recurring tasks, tags, sharing.
+- Production deployment.
 
 ## Decisions made
 - v1 is single-device with no login (stated in channel).
-- Milo and Rael are to agree on local vs Supabase storage; the channel's single-device, no-login decision is the basis for that choice.
+- Milo and Rael are to agree on the storage approach. Given single-device and no login, local storage is the only approach consistent with that decision.
+- Add a "clear completed" button (requested in channel).
+- Each to-do can have a due date, and overdue ones are highlighted (requested in channel).
 
 ## Assumed
-- Storage is local on the device, not Supabase. Simplest option that fits single-device, no login. Marked Assumed because the channel never named the final storage choice explicitly.
-- Platform is web, using browser localStorage. Platform was not discussed.
-- A to-do item has: id, title, completed flag, created timestamp.
-- No item limit, no ordering beyond creation order.
-- Storage interface: list, add, update, remove.
+- Storage is browser localStorage behind a small data module, so a backend could be swapped in later. The channel never recorded an explicit local vs Supabase answer.
+- The app is a web app. The stack is whatever the repo already uses, and if there is none, plain React or similar chosen by Rael.
+- Due date is date only, with no time. Overdue means the due date is before today in the user's local timezone.
+- Completed to-dos are never shown as overdue.
+- "Clear completed" asks for no confirmation. If undo is wanted later, it is a follow-up.
+- No repo state was verified. The channel question about whether earlier work was done is unanswered here, and this PRD assumes a clean start.
 
 ## Acceptance criteria
-- User can add a to-do and see it in the list.
-- User can edit a to-do title.
-- User can mark a to-do complete and incomplete.
-- User can delete a to-do.
-- After reload, all to-dos and their states are still present.
-- No login screen and no network calls to Supabase exist in the app.
-- Storage access goes only through the storage interface.
-- Empty title is rejected.
+- A user can add, complete, uncomplete, edit and delete a to-do.
+- A user can set, change and clear a due date on a to-do.
+- An incomplete to-do with a due date before today shows a distinct highlight. Completed or undated to-dos never do.
+- "Clear completed" removes all completed to-dos and leaves the others untouched. It is disabled or hidden when none are completed.
+- All data survives a page reload.
+- No network calls, no login, no Supabase dependency.
