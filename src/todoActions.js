@@ -19,5 +19,6 @@ export function createTodoActions(storage) {
     edit: (id, title, dueDate) => run(() => storage.update(id, { title, dueDate })),
     toggle: (id, completed) => run(() => storage.update(id, { completed })),
     remove: (id) => run(() => storage.remove(id)),
+    clearCompleted: () => run(() => storage.clearCompleted()),
   };
 }
