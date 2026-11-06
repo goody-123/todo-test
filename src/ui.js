@@ -13,13 +13,17 @@ function showError(msg) {
   errorEl.textContent = msg || "";
 }
 
-function handle(result) {
+// After a successful action the list is rebuilt, so put keyboard focus back somewhere sensible.
+// focus: { id, role } to focus a control in that row, or omitted to focus the add input.
+function handle(result, focus) {
   if (!result.ok) {
     showError(result.error);
     return false;
   }
   showError("");
   render();
+  const target = focus && listEl.querySelector(`[data-id="${focus.id}"][data-role="${focus.role}"]`);
+  (target || input).focus();
   return true;
 }
 
@@ -29,8 +33,10 @@ function makeItem(todo) {
   const check = document.createElement("input");
   check.type = "checkbox";
   check.checked = todo.completed;
+  check.dataset.id = todo.id;
+  check.dataset.role = "check";
   check.setAttribute("aria-label", `Complete: ${todo.title}`);
-  check.addEventListener("change", () => handle(actions.toggle(todo.id, check.checked)));
+  check.addEventListener("change", () => handle(actions.toggle(todo.id, check.checked), { id: todo.id, role: "check" }));
 
   const title = document.createElement("span");
   title.textContent = todo.title;
@@ -39,6 +45,8 @@ function makeItem(todo) {
   const edit = document.createElement("button");
   edit.type = "button";
   edit.textContent = "Edit";
+  edit.dataset.id = todo.id;
+  edit.dataset.role = "edit";
   edit.setAttribute("aria-label", `Edit: ${todo.title}`);
   edit.addEventListener("click", () => startEdit(li, todo));
 
@@ -65,11 +73,12 @@ function startEdit(li, todo) {
   cancel.type = "button";
   cancel.textContent = "Cancel";
 
-  const commit = () => handle(actions.editTitle(todo.id, editInput.value));
+  const commit = () => handle(actions.editTitle(todo.id, editInput.value), { id: todo.id, role: "edit" });
   save.addEventListener("click", commit);
   cancel.addEventListener("click", () => {
     showError("");
     render();
+    listEl.querySelector(`[data-id="${todo.id}"][data-role="edit"]`)?.focus();
   });
   editInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") commit();
@@ -88,10 +97,7 @@ function render() {
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  if (handle(actions.add(input.value))) {
-    input.value = "";
-    input.focus();
-  }
+  if (handle(actions.add(input.value))) input.value = "";
 });
 
 render();
