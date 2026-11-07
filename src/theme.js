@@ -15,6 +15,8 @@ function stored() {
 function apply(theme) {
   root.dataset.theme = theme;
   toggle.setAttribute("aria-pressed", String(theme === "dark"));
+  // Label names the theme a click switches to.
+  toggle.textContent = theme === "dark" ? "Light mode" : "Dark mode";
 }
 
 apply(stored() || (media.matches ? "dark" : "light"));
