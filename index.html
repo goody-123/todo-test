@@ -5,32 +5,114 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>To-do</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 2rem auto; padding: 0 1rem; }
-    form { display: flex; gap: .5rem; }
-    form #add-title { flex: 1; }
-    input, button { font: inherit; padding: .4rem .6rem; }
-    ul { list-style: none; padding: 0; }
-    li { display: flex; align-items: center; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid #ddd; }
-    li span { flex: 1; }
-    li input[type=text] { flex: 1; }
-    .done { text-decoration: line-through; color: #595959; }
-    .due { font-size: .875rem; color: #595959; white-space: nowrap; }
-    li.overdue { background: #fdecea; border-left: 4px solid #b00020; padding-left: .5rem; }
-    .overdue-label { color: #b00020; font-weight: 600; }
-    #error { color: #b00020; min-height: 1.5em; }
+    :root {
+      --bg: #f4f5fb;
+      --card: #ffffff;
+      --text: #1b1d2a;
+      --muted: #5b6075;
+      --line: #e3e5ef;
+      --accent: #4338ca;
+      --accent-hover: #3730a3;
+      --danger: #b42318;
+      --danger-bg: #fef3f2;
+      --danger-line: #fda29b;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main { max-width: 40rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+    header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    h1 { margin: 0; font-size: 1.75rem; letter-spacing: -.02em; }
+    #summary { margin: 0; color: var(--muted); font-size: .9rem; }
+
+    input, button { font: inherit; color: inherit; }
+    input[type=text], input[type=date] {
+      min-height: 2.75rem; padding: .5rem .75rem;
+      border: 1px solid #c4c7d8; border-radius: 8px; background: #fff;
+    }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    button {
+      min-height: 2.75rem; padding: .5rem 1rem; cursor: pointer;
+      border: 1px solid #c4c7d8; border-radius: 8px; background: #fff; font-weight: 500;
+      transition: background-color .15s, border-color .15s;
+    }
+    button:hover:not(:disabled) { background: #eef0fb; border-color: var(--accent); }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+    button.danger:hover:not(:disabled) { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+    #add-form {
+      display: grid; grid-template-columns: 1fr auto auto; gap: .5rem;
+      padding: 1rem; background: var(--card); border-radius: var(--radius);
+      box-shadow: 0 1px 3px rgba(20, 22, 50, .08);
+    }
+    #error { margin: .5rem 0; min-height: 1.5em; color: var(--danger); font-weight: 500; }
+
+    #empty {
+      margin: 1rem 0; padding: 2.5rem 1rem; text-align: center; color: var(--muted);
+      border: 2px dashed var(--line); border-radius: var(--radius);
+    }
+    #empty strong { display: block; color: var(--text); font-size: 1.1rem; }
+
+    #list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+    #list li {
+      display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+      padding: .75rem 1rem; background: var(--card);
+      border: 1px solid var(--line); border-left: 4px solid transparent; border-radius: var(--radius);
+      box-shadow: 0 1px 2px rgba(20, 22, 50, .05);
+      transition: box-shadow .15s, border-color .15s;
+    }
+    #list li:hover { box-shadow: 0 3px 10px rgba(20, 22, 50, .1); }
+    #list li.overdue { background: var(--danger-bg); border-color: var(--danger-line); border-left-color: var(--danger); }
+    #list input[type=checkbox] { width: 1.4rem; height: 1.4rem; flex: none; accent-color: var(--accent); cursor: pointer; }
+    .body { flex: 1; min-width: 8rem; display: flex; flex-direction: column; gap: .1rem; overflow-wrap: anywhere; }
+    .title { font-weight: 500; }
+    .done { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+    .due { font-size: .85rem; color: var(--muted); }
+    .overdue-label { color: var(--danger); font-weight: 700; }
+    .actions { display: flex; gap: .4rem; }
+    .actions button { min-height: 2.25rem; padding: .25rem .75rem; font-size: .9rem; }
+    li.editing .edit-fields { flex: 1; display: flex; gap: .5rem; flex-wrap: wrap; min-width: 0; }
+    li.editing .edit-fields input[type=text] { flex: 1; min-width: 10rem; }
+
+    footer { margin-top: 1rem; display: flex; justify-content: flex-end; }
+
+    @media (max-width: 480px) {
+      main { padding-top: 1rem; }
+      #add-form { grid-template-columns: 1fr 1fr; }
+      #add-title { grid-column: 1 / -1; }
+      .actions { width: 100%; }
+      .actions button { flex: 1; }
+      footer button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
 </head>
 <body>
-  <h1>To-do</h1>
-  <form id="add-form">
-    <input id="add-title" type="text" aria-label="New to-do title" placeholder="What needs doing?">
-    <input id="add-due" type="date" aria-label="Due date (optional)">
-    <button type="submit">Add</button>
-  </form>
-  <p id="error" role="alert"></p>
-  <p id="empty" hidden>Nothing to do yet.</p>
-  <ul id="list"></ul>
-  <button type="button" id="clear-completed" disabled>Clear completed</button>
+  <main>
+    <header>
+      <h1>To-do</h1>
+      <p id="summary" aria-live="polite"></p>
+    </header>
+    <form id="add-form">
+      <input id="add-title" type="text" aria-label="New to-do title" placeholder="What needs doing?" autocomplete="off">
+      <input id="add-due" type="date" aria-label="Due date (optional)">
+      <button type="submit" class="primary">Add</button>
+    </form>
+    <p id="error" role="alert"></p>
+    <p id="empty" hidden><strong>Nothing to do yet</strong>Add your first to-do above.</p>
+    <ul id="list"></ul>
+    <footer>
+      <button type="button" id="clear-completed" disabled class="danger">Clear completed</button>
+    </footer>
+  </main>
   <script type="module" src="src/ui.js"></script>
 </body>
 </html>

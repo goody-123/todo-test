@@ -9,6 +9,7 @@ const dueInput = document.getElementById("add-due");
 const listEl = document.getElementById("list");
 const errorEl = document.getElementById("error");
 const emptyEl = document.getElementById("empty");
+const summaryEl = document.getElementById("summary");
 const clearBtn = document.getElementById("clear-completed");
 
 function showError(msg) {
@@ -29,6 +30,20 @@ function handle(result, focus) {
   return true;
 }
 
+function formatDate(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+}
+
+function button(label, ariaLabel, className) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = label;
+  if (ariaLabel) b.setAttribute("aria-label", ariaLabel);
+  if (className) b.className = className;
+  return b;
+}
+
 function makeItem(todo) {
   const li = document.createElement("li");
 
@@ -40,42 +55,43 @@ function makeItem(todo) {
   check.setAttribute("aria-label", `Complete: ${todo.title}`);
   check.addEventListener("change", () => handle(actions.toggle(todo.id, check.checked), { id: todo.id, role: "check" }));
 
+  const body = document.createElement("div");
+  body.className = "body";
   const title = document.createElement("span");
+  title.className = todo.completed ? "title done" : "title";
   title.textContent = todo.title;
-  if (todo.completed) title.className = "done";
+  body.append(title);
 
-  const edit = document.createElement("button");
-  edit.type = "button";
-  edit.textContent = "Edit";
-  edit.dataset.id = todo.id;
-  edit.dataset.role = "edit";
-  edit.setAttribute("aria-label", `Edit: ${todo.title}`);
-  edit.addEventListener("click", () => startEdit(li, todo));
-
-  const del = document.createElement("button");
-  del.type = "button";
-  del.textContent = "Delete";
-  del.setAttribute("aria-label", `Delete: ${todo.title}`);
-  del.addEventListener("click", () => handle(actions.remove(todo.id)));
-
-  li.append(check, title);
   if (todo.dueDate) {
     const due = document.createElement("span");
     due.className = "due";
     const time = document.createElement("time");
     time.dateTime = todo.dueDate;
-    time.textContent = `Due ${todo.dueDate}`;
+    time.textContent = `Due ${formatDate(todo.dueDate)}`;
     due.append(time);
     if (isOverdue(todo)) {
       li.classList.add("overdue");
       const label = document.createElement("strong");
       label.className = "overdue-label";
       label.textContent = "\u26A0 Overdue";
-      due.append(" ", label);
+      due.append(" \u00B7 ", label);
     }
-    li.append(due);
+    body.append(due);
   }
-  li.append(edit, del);
+
+  const edit = button("Edit", `Edit: ${todo.title}`);
+  edit.dataset.id = todo.id;
+  edit.dataset.role = "edit";
+  edit.addEventListener("click", () => startEdit(li, todo));
+
+  const del = button("Delete", `Delete: ${todo.title}`, "danger");
+  del.addEventListener("click", () => handle(actions.remove(todo.id)));
+
+  const group = document.createElement("div");
+  group.className = "actions";
+  group.append(edit, del);
+
+  li.append(check, body, group);
   return li;
 }
 
@@ -90,12 +106,8 @@ function startEdit(li, todo) {
   dueEdit.value = todo.dueDate || "";
   dueEdit.setAttribute("aria-label", "Edit due date (clear to remove)");
 
-  const save = document.createElement("button");
-  save.type = "button";
-  save.textContent = "Save";
-  const cancel = document.createElement("button");
-  cancel.type = "button";
-  cancel.textContent = "Cancel";
+  const save = button("Save", null, "primary");
+  const cancel = button("Cancel");
 
   const commit = () => handle(actions.edit(todo.id, editInput.value, dueEdit.value), { id: todo.id, role: "edit" });
   save.addEventListener("click", commit);
@@ -111,7 +123,15 @@ function startEdit(li, todo) {
     });
   }
 
-  li.replaceChildren(editInput, dueEdit, save, cancel);
+  const fields = document.createElement("div");
+  fields.className = "edit-fields";
+  fields.append(editInput, dueEdit);
+  const group = document.createElement("div");
+  group.className = "actions";
+  group.append(save, cancel);
+
+  li.classList.add("editing");
+  li.replaceChildren(fields, group);
   editInput.focus();
 }
 
@@ -119,6 +139,8 @@ function render() {
   const todos = actions.list();
   listEl.replaceChildren(...todos.map(makeItem));
   emptyEl.hidden = todos.length > 0;
+  const open = todos.filter((t) => !t.completed).length;
+  summaryEl.textContent = todos.length ? `${open} open, ${todos.length - open} done` : "";
   clearBtn.disabled = !todos.some((t) => t.completed);
 }
 
