@@ -13,6 +13,8 @@
       --line: #e3e5ef;
       --accent: #4338ca;
       --accent-hover: #3730a3;
+      --btn: #8b0000;
+      --btn-hover: #5c0000;
       --danger: #b42318;
       --danger-bg: #fef3f2;
       --danger-line: #fda29b;
@@ -39,14 +41,11 @@
 
     button {
       min-height: 2.75rem; padding: .5rem 1rem; cursor: pointer;
-      border: 1px solid #c4c7d8; border-radius: 8px; background: #fff; font-weight: 500;
+      border: 1px solid var(--btn); border-radius: 8px; background: var(--btn); color: #fff; font-weight: 500;
       transition: background-color .15s, border-color .15s;
     }
-    button:hover:not(:disabled) { background: #eef0fb; border-color: var(--accent); }
-    button:disabled { cursor: not-allowed; opacity: .5; }
-    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
-    button.danger:hover:not(:disabled) { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+    button:hover:not(:disabled) { background: var(--btn-hover); border-color: var(--btn-hover); }
+    button:disabled { cursor: not-allowed; opacity: .45; }
 
     #add-form {
       display: grid; grid-template-columns: 1fr auto auto; gap: .5rem;
